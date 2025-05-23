@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= shopName %></title>
+  <link href="/css/tailwind.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-white font-sans">
+  <div class="max-w-4xl mx-auto p-8">
+    <h1 class="text-4xl font-bold mb-6"><%= shopName %></h1>
+    <p class="mb-4">Opening Hours: <strong><%= openingHours %></strong></p>
+    <p class="mb-4">Delivery within <strong><%= deliveryInfo.radius %></strong> for orders over <strong>€<%= deliveryInfo.minimumOrder %></strong></p>
+    <form method="POST" action="/check-delivery" class="mb-4">
+      <input type="text" name="address" placeholder="Enter your address" class="p-2 rounded text-black">
+      <button type="submit" class="bg-blue-500 p-2 rounded ml-2">Check Delivery</button>
+    </form>
+    <% if (deliveryResult) { %>
+      <p class="mb-4"><%= deliveryResult %></p>
+    <% } %>
+    <h2 class="text-2xl mt-6 mb-2">Available Inventory</h2>
+    <ul class="grid grid-cols-2 gap-4">
+      <% inventory.forEach(item => { %>
+        <li class="bg-gray-800 p-4 rounded-lg shadow">
+          <h3 class="text-lg font-semibold"><%= item.name %></h3>
+          <p>€<%= item.price %></p>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+</body>
+</html>

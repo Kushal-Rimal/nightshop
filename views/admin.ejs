@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Inventory Editor</title>
+  <link href="/css/tailwind.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-white font-sans">
+  <div class="max-w-4xl mx-auto p-8">
+    <h1 class="text-3xl font-bold mb-4">Admin Panel - Edit Inventory</h1>
+    <form method="POST" action="/admin/update">
+      <textarea name="data" rows="20" class="w-full text-black p-2"><%- JSON.stringify(inventory, null, 2) %></textarea>
+      <button type="submit" class="mt-4 bg-green-600 p-2 rounded">Save Inventory</button>
+    </form>
+  </div>
+</body>
+</html>

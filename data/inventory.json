@@ -1,0 +1,6 @@
+[
+  { "name": "Chips", "price": 2.5 },
+  { "name": "Soda", "price": 1.8 },
+  { "name": "Beer", "price": 3.0 },
+  { "name": "Water", "price": 1.0 }
+]
