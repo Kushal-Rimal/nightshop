@@ -1,32 +1,578 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= shopName %></title>
-  <link href="/css/tailwind.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Night Shop Antwerpsesteenweg | Open Late</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+        
+        .glow {
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+        }
+        
+        .delivery-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
+        }
+        
+        .inventory-item:hover {
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+        }
+        
+        .opening-hours li {
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .opening-hours li:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background-color: #6366f1;
+            border-radius: 50%;
+        }
+        
+        .cigarette-brands {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .cigarette-brand {
+            background: rgba(255,255,255,0.05);
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            text-align: center;
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-white font-sans">
-  <div class="max-w-4xl mx-auto p-8">
-    <h1 class="text-4xl font-bold mb-6"><%= shopName %></h1>
-    <p class="mb-4">Opening Hours: <strong><%= openingHours %></strong></p>
-    <p class="mb-4">Delivery within <strong><%= deliveryInfo.radius %></strong> for orders over <strong>€<%= deliveryInfo.minimumOrder %></strong></p>
-    <form method="POST" action="/check-delivery" class="mb-4">
-      <input type="text" name="address" placeholder="Enter your address" class="p-2 rounded text-black">
-      <button type="submit" class="bg-blue-500 p-2 rounded ml-2">Check Delivery</button>
-    </form>
-    <% if (deliveryResult) { %>
-      <p class="mb-4"><%= deliveryResult %></p>
-    <% } %>
-    <h2 class="text-2xl mt-6 mb-2">Available Inventory</h2>
-    <ul class="grid grid-cols-2 gap-4">
-      <% inventory.forEach(item => { %>
-        <li class="bg-gray-800 p-4 rounded-lg shadow">
-          <h3 class="text-lg font-semibold"><%= item.name %></h3>
-          <p>€<%= item.price %></p>
-        </li>
-      <% }) %>
-    </ul>
+<body>
+    <!-- Navigation -->
+    <nav class="bg-gray-900/80 backdrop-blur-md fixed w-full z-50 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <span class="text-2xl font-bold text-indigo-400">Night Shop</span>
+                        <span class="text-white">Antwerpsesteenweg</span>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#home" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                        <a href="#hours" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Opening Hours</a>
+                        <a href="#inventory" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Inventory</a>
+                        <a href="#delivery" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Delivery</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button class="mobile-menu-button p-2 rounded-md text-gray-400 hover:text-white focus:outline-none">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu hidden md:hidden fixed inset-0 z-40 bg-gray-900/95 backdrop-blur-lg pt-16">
+        <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <a href="#home" class="block px-3 py-2 rounded-md text-base font-medium text-white">Home</a>
+            <a href="#hours" class="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white">Opening Hours</a>
+            <a href="#inventory" class="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white">Inventory</a>
+            <a href="#delivery" class="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white">Delivery</a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="home" class="gradient-bg pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="md:w-1/2 mb-10 md:mb-0">
+                    <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-4">
+                        Your Late Night <span class="text-indigo-400">Essentials</span> Delivered
+                    </h1>
+                    <p class="text-lg text-gray-300 mb-8">
+                        Open when others are closed. We've got everything you need for those late nights and early mornings.
+                    </p>
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                        <a href="#delivery" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium text-center glow">
+                            <i class="fas fa-bicycle mr-2"></i> Order Delivery
+                        </a>
+                        <a href="#inventory" class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium text-center">
+                            <i class="fas fa-shopping-basket mr-2"></i> Browse Inventory
+                        </a>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <div class="relative w-full max-w-md">
+                        <div class="absolute -top-6 -left-6 w-32 h-32 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+                        <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+                        <div class="relative bg-gray-800/50 border border-gray-700 rounded-2xl p-6 backdrop-blur-sm">
+                            <img src="https://images.unsplash.com/photo-1601593768790-82b9e27cb7b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Night Shop" class="rounded-lg shadow-lg w-full h-auto">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Opening Hours -->
+    <section id="hours" class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-900">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">Opening Hours</h2>
+                <div class="w-20 h-1 bg-indigo-500 mx-auto"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-8 backdrop-blur-sm">
+                    <h3 class="text-xl font-semibold mb-6 text-indigo-400">Regular Hours</h3>
+                    <ul class="space-y-3 opening-hours">
+                        <li class="flex justify-between"><span>Monday - Thursday</span> <span class="font-medium">4:00 PM - 2:00 AM</span></li>
+                        <li class="flex justify-between"><span>Friday</span> <span class="font-medium">4:00 PM - 4:00 AM</span></li>
+                        <li class="flex justify-between"><span>Saturday</span> <span class="font-medium">2:00 PM - 4:00 AM</span></li>
+                        <li class="flex justify-between"><span>Sunday</span> <span class="font-medium">2:00 PM - 2:00 AM</span></li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-8 backdrop-blur-sm">
+                    <h3 class="text-xl font-semibold mb-6 text-indigo-400">Holiday Hours</h3>
+                    <ul class="space-y-3 opening-hours">
+                        <li class="flex justify-between"><span>Christmas Eve</span> <span class="font-medium">4:00 PM - 12:00 AM</span></li>
+                        <li class="flex justify-between"><span>New Year's Eve</span> <span class="font-medium">4:00 PM - 6:00 AM</span></li>
+                        <li class="flex justify-between"><span>Public Holidays</span> <span class="font-medium">10:00 AM - 2:00 AM</span></li>
+                    </ul>
+                    <p class="mt-6 text-gray-400 text-sm">
+                        <i class="fas fa-info-circle mr-2 text-indigo-400"></i> Special hours may apply during certain events. Call to confirm.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Inventory -->
+    <section id="inventory" class="py-20 px-4 sm:px-6 lg:px-8 gradient-bg">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">Our Inventory</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto">Everything you need for those late-night cravings</p>
+                <div class="w-20 h-1 bg-indigo-500 mx-auto mt-4"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Category 1 -->
+                <div class="inventory-item bg-gray-800/50 border border-gray-700 rounded-xl p-6 backdrop-blur-sm">
+                    <div class="flex items-center mb-4">
+                        <div class="p-3 rounded-lg bg-indigo-500/20 text-indigo-400 mr-4">
+                            <i class="fas fa-beer text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Beverages</h3>
+                    </div>
+                    <ul class="space-y-2 text-gray-300">
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Wide selection of beers (local & international)</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Premium spirits (whiskey, vodka, rum, gin)</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Strong liquors (absinthe, tequila, sambuca)</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Energy drinks & mixers</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Bottled water & soft drinks</li>
+                    </ul>
+                </div>
+                
+                <!-- Category 2 -->
+                <div class="inventory-item bg-gray-800/50 border border-gray-700 rounded-xl p-6 backdrop-blur-sm">
+                    <div class="flex items-center mb-4">
+                        <div class="p-3 rounded-lg bg-indigo-500/20 text-indigo-400 mr-4">
+                            <i class="fas fa-smoking text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Tobacco Products</h3>
+                    </div>
+                    <ul class="space-y-2 text-gray-300">
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Cigarettes (all major brands)</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Rolling tobacco & papers</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Cigars & cigarillos</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Vape products & e-liquids</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Lighters & accessories</li>
+                    </ul>
+                    <div class="mt-4">
+                        <h4 class="text-sm font-medium text-gray-400">Popular Cigarette Brands:</h4>
+                        <div class="cigarette-brands">
+                            <span class="cigarette-brand">Marlboro</span>
+                            <span class="cigarette-brand">Camel</span>
+                            <span class="cigarette-brand">Lucky Strike</span>
+                            <span class="cigarette-brand">Winston</span>
+                            <span class="cigarette-brand">Chesterfield</span>
+                            <span class="cigarette-brand">LM</span>
+                            <span class="cigarette-brand">Gauloises</span>
+                            <span class="cigarette-brand">Davidoff</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Category 3 -->
+                <div class="inventory-item bg-gray-800/50 border border-gray-700 rounded-xl p-6 backdrop-blur-sm">
+                    <div class="flex items-center mb-4">
+                        <div class="p-3 rounded-lg bg-indigo-500/20 text-indigo-400 mr-4">
+                            <i class="fas fa-utensils text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Snacks</h3>
+                    </div>
+                    <ul class="space-y-2 text-gray-300">
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Chips & nuts</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Chocolate & candy</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Ice cream</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Microwave snacks</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Frozen pizzas</li>
+                    </ul>
+                </div>
+                
+                <!-- Category 4 -->
+                <div class="inventory-item bg-gray-800/50 border border-gray-700 rounded-xl p-6 backdrop-blur-sm">
+                    <div class="flex items-center mb-4">
+                        <div class="p-3 rounded-lg bg-indigo-500/20 text-indigo-400 mr-4">
+                            <i class="fas fa-glass-whiskey text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Strong Drinks</h3>
+                    </div>
+                    <ul class="space-y-2 text-gray-300">
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Whiskey (single malt, blended)</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Vodka (premium & flavored)</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Rum (dark, white, spiced)</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Tequila (blanco, reposado, añejo)</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Liqueurs (Jägermeister, Baileys, etc.)</li>
+                    </ul>
+                </div>
+                
+                <!-- Category 5 -->
+                <div class="inventory-item bg-gray-800/50 border border-gray-700 rounded-xl p-6 backdrop-blur-sm">
+                    <div class="flex items-center mb-4">
+                        <div class="p-3 rounded-lg bg-indigo-500/20 text-indigo-400 mr-4">
+                            <i class="fas fa-bath text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Personal Care</h3>
+                    </div>
+                    <ul class="space-y-2 text-gray-300">
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Toiletries</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Pain relievers</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> First aid supplies</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Feminine products</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Condoms & personal items</li>
+                    </ul>
+                </div>
+                
+                <!-- Category 6 -->
+                <div class="inventory-item bg-gray-800/50 border border-gray-700 rounded-xl p-6 backdrop-blur-sm">
+                    <div class="flex items-center mb-4">
+                        <div class="p-3 rounded-lg bg-indigo-500/20 text-indigo-400 mr-4">
+                            <i class="fas fa-mobile-alt text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Miscellaneous</h3>
+                    </div>
+                    <ul class="space-y-2 text-gray-300">
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Phone chargers</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Batteries</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Basic groceries</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Pet food</li>
+                        <li class="flex items-center"><i class="fas fa-check text-indigo-400 mr-2 text-xs"></i> Party supplies</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Delivery -->
+    <section id="delivery" class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-900">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">Fast Delivery Service</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto">Get what you need without leaving your home</p>
+                <div class="w-20 h-1 bg-indigo-500 mx-auto mt-4"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-8 backdrop-blur-sm mb-8">
+                        <div class="flex items-center mb-6">
+                            <div class="delivery-badge bg-indigo-600 text-white p-3 rounded-full mr-4">
+                                <i class="fas fa-bicycle text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">Delivery Information</h3>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 h-6 w-6 text-indigo-400 mt-1">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-gray-300">
+                                        <span class="font-medium">Delivery Area:</span> Within 10 minutes biking distance from our shop at Antwerpsesteenweg
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 h-6 w-6 text-indigo-400 mt-1">
+                                    <i class="fas fa-euro-sign"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-gray-300">
+                                        <span class="font-medium">Minimum Order:</span> €20
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 h-6 w-6 text-indigo-400 mt-1">
+                                    <i class="fas fa-shipping-fast"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-gray-300">
+                                        <span class="font-medium">Delivery Fee:</span> €5
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 h-6 w-6 text-indigo-400 mt-1">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-gray-300">
+                                        <span class="font-medium">Delivery Hours:</span> Same as store hours, except last delivery starts 30 minutes before closing
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-indigo-600/10 border border-indigo-500/30 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-indigo-400 mb-3">How to Order</h3>
+                        <ol class="list-decimal list-inside space-y-2 text-gray-300">
+                            <li>Call us at <span class="font-medium text-white">+32 123 456 789</span></li>
+                            <li>Provide your address for delivery verification</li>
+                            <li>Tell us what you'd like to order</li>
+                            <li>Confirm your order total (minimum €20 + €5 delivery)</li>
+                            <li>Payment in cash upon delivery</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-8 backdrop-blur-sm h-full">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-indigo-600/20 text-indigo-400 p-3 rounded-full mr-4">
+                            <i class="fas fa-question-circle text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Delivery FAQs</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="border-b border-gray-700 pb-4">
+                            <h4 class="font-medium text-gray-300 mb-2">How do I know if I'm in the delivery area?</h4>
+                            <p class="text-gray-400 text-sm">Call us with your address and we'll let you know immediately if we can deliver to you.</p>
+                        </div>
+                        
+                        <div class="border-b border-gray-700 pb-4">
+                            <h4 class="font-medium text-gray-300 mb-2">Can I order online?</h4>
+                            <p class="text-gray-400 text-sm">Currently we only accept orders by phone to ensure quick service and accurate communication.</p>
+                        </div>
+                        
+                        <div class="border-b border-gray-700 pb-4">
+                            <h4 class="font-medium text-gray-300 mb-2">What payment methods do you accept?</h4>
+                            <p class="text-gray-400 text-sm">We only accept cash payments upon delivery at this time.</p>
+                        </div>
+                        
+                        <div class="border-b border-gray-700 pb-4">
+                            <h4 class="font-medium text-gray-300 mb-2">How long does delivery take?</h4>
+                            <p class="text-gray-400 text-sm">Typically 15-30 minutes depending on order volume and distance.</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-medium text-gray-300 mb-2">Can I request specific brands or products?</h4>
+                            <p class="text-gray-400 text-sm">Absolutely! Just let us know your preferences when ordering and we'll do our best to accommodate.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact & Location -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8 gradient-bg">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">Find Us</h2>
+                <div class="w-20 h-1 bg-indigo-500 mx-auto"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-8 backdrop-blur-sm">
+                    <h3 class="text-xl font-semibold mb-6 text-indigo-400">Contact Information</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-6 w-6 text-indigo-400 mt-1">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-gray-300">
+                                    <span class="font-medium">Address:</span> Antwerpsesteenweg 123, 2018 Antwerp
+                                </p>
+                            </div>
+                        </div>
+                        
+                      <div class="flex items-start">
+  <div class="flex-shrink-0 h-6 w-6 text-indigo-400 mt-1">
+    <i class="fas fa-phone-alt"></i>
   </div>
+  <div class="ml-3">
+    <p class="text-gray-300">
+      <span class="font-medium">Phone:</span>
+      <a href="tel:+32123456789" class="text-indigo-400 hover:underline">+32 123 456 789</a>
+    </p>
+  </div>
+</div>
+
+<!-- WhatsApp contact -->
+<div class="flex items-start mt-4">
+  <div class="flex-shrink-0 h-6 w-6 text-green-400 mt-1">
+    <i class="fab fa-whatsapp"></i>
+  </div>
+  <div class="ml-3">
+    <p class="text-gray-300">
+      <span class="font-medium">WhatsApp:</span>
+      <a href="https://wa.me/32123456789" target="_blank" class="text-green-400 hover:underline">+32 123 456 789</a>
+    </p>
+  </div>
+</div> <!-- ✅ add this to close the block properly -->
+
+
+                        
+                    
+                    <div class="mt-8">
+                        <h4 class="font-medium text-gray-300 mb-3">Follow Us</h4>
+                        <div class="flex space-x-4">
+                            <a href="#" class="text-gray-400 hover:text-indigo-400">
+                                <i class="fab fa-facebook-f text-xl"></i>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-indigo-400">
+                                <i class="fab fa-instagram text-xl"></i>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-indigo-400">
+                                <i class="fab fa-twitter text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden backdrop-blur-sm">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2499.221028876612!2d4.40341531575962!3d51.21922397958898!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47c3f7a5b4d0f8a5%3A0x1c1a1c1a1c1a1c1a!2sAntwerpsesteenweg%2C%202018%20Antwerpen!5e0!3m2!1sen!2sbe!4v1620000000000!5m2!1sen!2sbe" width="100%" height="100%" style="min-height: 300px;" allowfullscreen="" loading="lazy" class="border-0"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex justify-center md:order-2 space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-indigo-400">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-indigo-400">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-indigo-400">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </div>
+                <div class="mt-8 md:mt-0 md:order-1">
+                    <p class="text-center text-sm text-gray-400">
+                        &copy; 2023 Night Shop Antwerpsesteenweg. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.querySelector('.mobile-menu-button');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Close mobile menu when clicking on a link
+        const mobileMenuLinks = document.querySelectorAll('.mobile-menu a');
+        mobileMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Add shadow to navbar on scroll
+        window.addEventListener('scroll', function() {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('shadow-lg');
+            } else {
+                nav.classList.remove('shadow-lg');
+            }
+        });
+    </script>
 </body>
 </html>
